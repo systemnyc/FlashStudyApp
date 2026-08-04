@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FlashStudyApp — Flashcards</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header" role="banner">
+    <div class="header-inner">
+      <h1 class="app-title">FlashStudyApp</h1>
+      <button id="new-deck-btn" class="btn btn-primary" type="button" aria-label="Create a new deck">+ New Deck</button>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    <aside class="sidebar" aria-label="Deck list">
+      <h2 class="sidebar-title">Decks</h2>
+      <nav aria-label="Available decks">
+        <ul class="deck-list"></ul>
+      </nav>
+
+      <div id="deck-form" class="deck-form" hidden>
+        <label for="deck-name-input" class="deck-form-label">Deck name</label>
+        <input id="deck-name-input" type="text" class="search-input deck-name-input" placeholder="e.g. History 101" maxlength="60" />
+        <div class="deck-form-actions">
+          <button id="deck-form-save" type="button" class="btn btn-primary">Save</button>
+          <button id="deck-form-cancel" type="button" class="btn">Cancel</button>
+        </div>
+      </div>
+    </aside>
+
+    <main id="main" class="main-content" role="main">
+      <div class="deck-header">
+        <div class="deck-title-wrap">
+          <h2 id="deck-title">Biology 101</h2>
+        </div>
+
+        <form class="search-form" role="search" aria-label="Search cards">
+          <label for="search" class="search-label">Search cards</label>
+          <input id="search" name="search" type="search" class="search-input" placeholder="Search front or back..." aria-label="Search cards" />
+          <div class="deck-buttons">
+            <button id="shuffle-btn" type="button" class="btn" aria-label="Shuffle cards">Shuffle</button>
+            <button id="new-card-btn" type="button" class="btn" aria-label="Create a new card">+ New Card</button>
+          </div>
+        </form>
+      </div>
+
+      <section class="flashcard-section" aria-label="Flashcard study area">
+        <div id="flashcard" class="flashcard" tabindex="0" aria-live="polite">
+          <figure class="card-face card-front" aria-hidden="false">
+            <figcaption class="face-label">Front</figcaption>
+            <p class="card-text">What is the powerhouse of the cell?</p>
+          </figure>
+          <figure class="card-face card-back" aria-hidden="true">
+            <figcaption class="face-label">Back</figcaption>
+            <p class="card-text">Mitochondrion</p>
+          </figure>
+        </div>
+
+        <div class="card-controls" role="toolbar" aria-label="Card controls">
+          <div class="card-nav">
+            <button id="prev-btn" type="button" class="btn" aria-label="Previous card">← Prev</button>
+            <span id="card-counter" class="card-counter" aria-live="polite" aria-label="Card position"></span>
+            <button id="next-btn" type="button" class="btn" aria-label="Next card">Next →</button>
+          </div>
+          <div class="card-actions">
+            <button id="flip-btn" type="button" class="btn" aria-pressed="false" aria-label="Flip card">Flip</button>
+            <button id="edit-card-btn" type="button" class="btn" aria-label="Edit current card">Edit</button>
+            <button id="delete-card-btn" type="button" class="btn btn-danger" aria-label="Delete current card">Delete</button>
+          </div>
+        </div>
+
+        <div id="empty-state" class="empty-state" hidden>
+          <p>This deck has no cards yet.</p>
+          <button id="empty-add-card-btn" type="button" class="btn btn-primary">+ Add First Card</button>
+        </div>
+
+        <div id="card-form" class="card-form" hidden>
+          <h3 id="card-form-title" class="card-form-title">New Card</h3>
+          <div class="card-form-fields">
+            <div class="form-group">
+              <label for="card-front-input">Front</label>
+              <textarea id="card-front-input" class="form-textarea" rows="4" placeholder="Question or term..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="card-back-input">Back</label>
+              <textarea id="card-back-input" class="form-textarea" rows="4" placeholder="Answer or definition..."></textarea>
+            </div>
+          </div>
+          <div class="card-form-actions">
+            <button id="card-form-save" type="button" class="btn btn-primary">Save Card</button>
+            <button id="card-form-cancel" type="button" class="btn">Cancel</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="app-footer" role="contentinfo">
+    <p>Keyboard: 
+      <span class="kbd">←</span> Previous,
+      <span class="kbd">→</span> Next,
+      <span class="kbd">Space</span> Flip,
+      <span class="kbd">S</span> Shuffle,
+      <span class="kbd">N</span> New Deck,
+      <span class="kbd">C</span> New Card
+    </p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
