@@ -22,14 +22,19 @@
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (!parsed || !Array.isArray(parsed.decks) || parsed.decks.length === 0) return null;
+      if (!parsed || !Array.isArray(parsed.decks)) return null;
       return normalizeData(parsed);
     } catch (_) {}
     return null;
   }
 
   function persist() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch (_) {}
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(data));
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   // ── Seed data (first visit only) ────────────────────────────────────────────
@@ -80,10 +85,9 @@
       };
     });
 
-    if (!normalizedDecks.length) return null;
     const activeDeckId = normalizedDecks.some(d => d.id === rawData.activeDeckId)
       ? rawData.activeDeckId
-      : normalizedDecks[0].id;
+      : normalizedDecks[0]?.id || null;
 
     return { activeDeckId, decks: normalizedDecks };
   }
@@ -100,12 +104,14 @@
   let pendingCardId = null;
 
   function activeDeck() {
-    return data.decks.find(d => d.id === data.activeDeckId) || data.decks[0];
+    return data.decks.find(d => d.id === data.activeDeckId) || data.decks[0] || null;
   }
 
   function getFilteredCards() {
     const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
-    const cards = activeDeck().cards;
+    const deck = activeDeck();
+    if (!deck) return [];
+    const cards = deck.cards;
     return q
       ? cards.filter(c => c.front.toLowerCase().includes(q) || c.back.toLowerCase().includes(q))
       : cards;
@@ -123,8 +129,12 @@
   const editCardBtn     = document.getElementById('edit-card-btn');
   const deleteCardBtn   = document.getElementById('delete-card-btn');
   const emptyAddCardBtn = document.getElementById('empty-add-card-btn');
+  const clearSearchBtn  = document.getElementById('clear-search-btn');
+  const emptyCreateDeckBtn = document.getElementById('empty-create-deck-btn');
+  const emptyStateMessage = document.getElementById('empty-state-message');
   const deckTitleEl     = document.getElementById('deck-title');
   const searchInput     = document.getElementById('search');
+  const searchForm      = document.querySelector('.search-form');
   const cardCounter     = document.getElementById('card-counter');
   const deckList        = document.querySelector('.deck-list');
   const cardControls    = document.querySelector('.card-controls');
@@ -135,6 +145,7 @@
   const cardFormSave    = document.getElementById('card-form-save');
   const cardFormCancel  = document.getElementById('card-form-cancel');
   const deckForm        = document.getElementById('deck-form');
+  const deckFormTitle   = document.getElementById('deck-form-title');
   const deckNameInput   = document.getElementById('deck-name-input');
   const deckFormSave    = document.getElementById('deck-form-save');
   const deckFormCancel  = document.getElementById('deck-form-cancel');
@@ -167,6 +178,14 @@
     setTimeout(() => { n.classList.remove('visible'); setTimeout(() => n.remove(), 300); }, 2200);
   }
 
+  function showSaveResult(saved, successMessage = '') {
+    if (saved) {
+      if (successMessage) showNotice(successMessage);
+      return;
+    }
+    showNotice('Could not save changes. They may be lost when you reload.');
+  }
+
   // ── Flip ─────────────────────────────────────────────────────────────────────
 
   function resetFlip() {
@@ -188,31 +207,33 @@
   function renderSidebar() {
     if (!deckList) return;
     deckList.innerHTML = '';
+    if (!data.decks.length) {
+      const emptyItem = document.createElement('li');
+      emptyItem.className = 'deck-empty-item';
+      emptyItem.setAttribute('role', 'status');
+      emptyItem.textContent = 'No decks yet.';
+      deckList.appendChild(emptyItem);
+    }
     data.decks.forEach(deck => {
       const isActive = deck.id === data.activeDeckId;
       const li = document.createElement('li');
       li.className = 'deck-item' + (isActive ? ' active' : '');
-      li.setAttribute('tabindex', '0');
-      if (isActive) li.setAttribute('aria-current', 'true');
 
       li.innerHTML =
-        `<span class="deck-name">${escHtml(deck.name)}</span>` +
-        `<span class="deck-item-right">` +
+        `<button class="deck-select-btn btn" type="button" data-id="${escHtml(deck.id)}" ` +
+          `aria-label="Select deck ${escHtml(deck.name)}, ${deck.cards.length} cards"` +
+          `${isActive ? ' aria-current="true"' : ''}>` +
+          `<span class="deck-name">${escHtml(deck.name)}</span>` +
           `<span class="deck-count" aria-hidden="true">${deck.cards.length}</span>` +
+        `</button>` +
+        `<span class="deck-item-right">` +
           `<button class="deck-edit-btn btn" type="button" data-id="${escHtml(deck.id)}" ` +
             `aria-label="Rename deck ${escHtml(deck.name)}">✎</button>` +
           `<button class="deck-delete-btn btn" type="button" data-id="${escHtml(deck.id)}" ` +
             `aria-label="Delete deck ${escHtml(deck.name)}">✕</button>` +
         `</span>`;
 
-      li.addEventListener('click', e => {
-        if (e.target.closest('.deck-edit-btn')) return;
-        if (e.target.closest('.deck-delete-btn')) return;
-        switchDeck(deck.id);
-      });
-      li.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); switchDeck(deck.id); }
-      });
+      li.querySelector('.deck-select-btn').addEventListener('click', () => switchDeck(deck.id));
       li.querySelector('.deck-edit-btn').addEventListener('click', e => {
         e.stopPropagation();
         openDeckForm(deck);
@@ -227,13 +248,25 @@
   }
 
   function renderCard() {
+    const deck = activeDeck();
     const cards = getFilteredCards();
-    if (deckTitleEl) deckTitleEl.textContent = activeDeck().name;
+    if (deckTitleEl) deckTitleEl.textContent = deck ? deck.name : 'No deck selected';
 
     const hasCards = cards.length > 0;
+    const deckHasCards = Boolean(deck && deck.cards.length);
     flashcard.hidden = !hasCards;
     if (cardControls) cardControls.hidden = !hasCards;
     if (emptyState)   emptyState.hidden = hasCards;
+    if (emptyStateMessage) {
+      emptyStateMessage.textContent = !deck
+        ? 'Create a deck to start studying.'
+        : deckHasCards ? 'No cards match your search.' : 'This deck has no cards yet.';
+    }
+    if (emptyAddCardBtn) emptyAddCardBtn.hidden = !deck || deckHasCards;
+    if (clearSearchBtn) clearSearchBtn.hidden = !deckHasCards;
+    if (emptyCreateDeckBtn) emptyCreateDeckBtn.hidden = Boolean(deck);
+    if (newCardBtn) newCardBtn.disabled = !deck;
+    if (shuffleBtn) shuffleBtn.disabled = !deck;
 
     if (!hasCards) {
       if (frontFace) frontFace.querySelector('.card-text').textContent = '';
@@ -295,31 +328,33 @@
     if (data.activeDeckId === id) return;
     data.activeDeckId = id;
     if (searchInput) searchInput.value = '';
-    persist();
+    const saved = persist();
     fullRender();
+    showSaveResult(saved);
   }
 
   function deleteDeck(id) {
-    if (data.decks.length <= 1) { showNotice('Cannot delete the last deck'); return; }
     if (!confirm('Delete this deck and all its cards? This cannot be undone.')) return;
     data.decks = data.decks.filter(d => d.id !== id);
-    if (data.activeDeckId === id) data.activeDeckId = data.decks[0].id;
-    persist();
+    if (data.activeDeckId === id) data.activeDeckId = data.decks[0]?.id || null;
+    const saved = persist();
     fullRender();
-    showNotice('Deck deleted');
+    if (!data.decks.length && newDeckBtn) newDeckBtn.focus();
+    showSaveResult(saved, 'Deck deleted');
   }
 
   function openDeckForm(deck = null) {
     editingDeckId = deck ? deck.id : null;
     deckFormTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     if (deckNameInput) deckNameInput.value = deck ? deck.name : '';
-    if (deckForm) deckForm.hidden = false;
+    if (deckFormTitle) deckFormTitle.textContent = editingDeckId ? 'Rename Deck' : 'New Deck';
+    if (deckForm && !deckForm.open) deckForm.showModal();
     if (deckFormSave) deckFormSave.textContent = editingDeckId ? 'Rename Deck' : 'Create Deck';
     if (deckNameInput) deckNameInput.focus();
   }
 
   function closeDeckForm() {
-    if (deckForm) deckForm.hidden = true;
+    if (deckForm && deckForm.open) deckForm.close();
     if (deckFormTrigger && typeof deckFormTrigger.focus === 'function') {
       deckFormTrigger.focus();
     }
@@ -335,9 +370,9 @@
       const deck = data.decks.find(d => d.id === editingDeckId);
       if (deck) {
         deck.name = name;
-        persist();
+        const saved = persist();
         fullRender();
-        showNotice(`Deck renamed to "${name}"`);
+        showSaveResult(saved, `Deck renamed to "${name}"`);
         return;
       }
     }
@@ -345,10 +380,10 @@
     const newDeck = { id: uid(), name, cards: [] };
     data.decks.push(newDeck);
     data.activeDeckId = newDeck.id;
-    persist();
+    const saved = persist();
     if (searchInput) searchInput.value = '';
     fullRender();
-    showNotice(`Deck "${name}" created`);
+    showSaveResult(saved, `Deck "${name}" created`);
   }
 
   // ── Card navigation ───────────────────────────────────────────────────────────
@@ -392,15 +427,19 @@
     if (!card) return;
     if (!confirm('Delete this card? This cannot be undone.')) return;
     const deck = activeDeck();
+    if (!deck) {
+      showNotice('Create a deck before adding cards');
+      return;
+    }
     deck.cards = deck.cards.filter(c => c.id !== card.id);
-    persist();
+    const saved = persist();
     const newCards = getFilteredCards();
     order = newCards.map((_, i) => i);
     current = Math.min(current, Math.max(0, newCards.length - 1));
     resetFlip();
     renderCard();
     renderSidebar();
-    showNotice('Card deleted');
+    showSaveResult(saved, 'Card deleted');
   }
 
   function openCardForm(card) {
@@ -412,12 +451,12 @@
     flashcard.hidden = true;
     if (cardControls) cardControls.hidden = true;
     if (emptyState)   emptyState.hidden = true;
-    if (cardForm)     cardForm.hidden = false;
+    if (cardForm && !cardForm.open) cardForm.showModal();
     if (cardFrontInput) cardFrontInput.focus();
   }
 
   function closeCardForm() {
-    if (cardForm) cardForm.hidden = true;
+    if (cardForm && cardForm.open) cardForm.close();
     editingCardId = null;
     if (cardFormTrigger && typeof cardFormTrigger.focus === 'function') {
       cardFormTrigger.focus();
@@ -457,11 +496,11 @@
     order = cards.map((_, i) => i);
     pendingCardId = savedCardId;
 
-    persist();
+    const saved = persist();
     closeCardForm();
     renderSidebar();
     renderCard();
-    showNotice(wasEditing ? 'Card updated' : 'Card added');
+    showSaveResult(saved, wasEditing ? 'Card updated' : 'Card added');
   }
 
   // ── Search ───────────────────────────────────────────────────────────────────
@@ -482,11 +521,11 @@
     const tag = document.activeElement ? document.activeElement.tagName : '';
     const inInput = tag === 'INPUT' || tag === 'TEXTAREA' ||
       Boolean(document.activeElement && document.activeElement.isContentEditable);
-    const formOpen = (cardForm && !cardForm.hidden) || (deckForm && !deckForm.hidden);
+    const formOpen = (cardForm && cardForm.open) || (deckForm && deckForm.open);
 
     if (e.key === 'Escape') {
-      if (cardForm && !cardForm.hidden) { closeCardForm(); renderCard(); return; }
-      if (deckForm && !deckForm.hidden) { closeDeckForm(); return; }
+      if (cardForm && cardForm.open) { closeCardForm(); renderCard(); return; }
+      if (deckForm && deckForm.open) { closeDeckForm(); return; }
     }
 
     if (formOpen || inInput) return;
@@ -517,6 +556,14 @@
   if (newCardBtn)     newCardBtn.addEventListener('click', () => openCardForm(null));
   if (newDeckBtn)     newDeckBtn.addEventListener('click', openDeckForm);
   if (emptyAddCardBtn) emptyAddCardBtn.addEventListener('click', () => openCardForm(null));
+  if (emptyCreateDeckBtn) emptyCreateDeckBtn.addEventListener('click', () => openDeckForm());
+  if (clearSearchBtn) clearSearchBtn.addEventListener('click', () => {
+    if (searchInput) {
+      searchInput.value = '';
+      searchInput.focus();
+    }
+    onSearch();
+  });
 
   if (cardFormSave)   cardFormSave.addEventListener('click', saveCard);
   if (cardFormCancel) cardFormCancel.addEventListener('click', () => { closeCardForm(); renderCard(); });
@@ -524,6 +571,7 @@
   if (deckFormCancel) deckFormCancel.addEventListener('click', closeDeckForm);
 
   if (searchInput) searchInput.addEventListener('input', onSearch);
+  if (searchForm) searchForm.addEventListener('submit', e => e.preventDefault());
 
   if (deckNameInput) {
     deckNameInput.addEventListener('keydown', e => {

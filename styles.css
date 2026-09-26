@@ -94,22 +94,34 @@ body{
 }
 .deck-item{
   display:flex;
+  align-items:center;
   justify-content:space-between;
   gap:8px;
   padding:8px;
   border-radius:6px;
-  cursor:pointer;
   border:1px solid transparent;
   background:transparent;
 }
 .deck-item:hover{background:rgba(0,0,0,0.03)}
-.deck-item:focus{outline:none}
 .deck-item.active{
   background:linear-gradient(90deg, rgba(3,102,214,0.08), transparent);
   border-color:var(--primary);
 }
+.deck-select-btn{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:0;
+  border:0;
+  text-align:left;
+  font:inherit;
+  cursor:pointer;
+}
 .deck-name{font-weight:600}
 .deck-count{color:var(--muted); font-size:0.85rem}
+.deck-empty-item{padding:8px; color:var(--muted)}
 
 /* Main */
 .main-content{
@@ -182,6 +194,7 @@ body{
 .card-face{
   width:100%;
   height:100%;
+  margin:0;
   border-radius:10px;
   border:1px solid var(--border);
   background:var(--surface);
@@ -234,6 +247,9 @@ body{
   flex-direction:column;
   gap:8px;
 }
+.deck-form:not([open]){display:none}
+.deck-form[open]{margin:auto; max-width:min(24rem, calc(100% - 2rem))}
+dialog::backdrop{background:rgba(10,20,30,0.48)}
 .deck-form-label{font-size:0.85rem; color:var(--muted); font-weight:600}
 .deck-name-input{width:100%}
 .deck-form-actions{display:flex; gap:8px}
@@ -258,6 +274,8 @@ body{
   padding:20px;
   box-shadow:0 6px 20px rgba(0,0,0,0.06);
 }
+.card-form:not([open]){display:none}
+.card-form[open]{margin:auto; max-width:min(35rem, calc(100% - 2rem))}
 .card-form-title{margin:0 0 16px; font-size:1rem}
 .card-form-fields{display:flex; flex-direction:column; gap:14px; margin-bottom:16px}
 .form-group{display:flex; flex-direction:column; gap:4px}
@@ -278,7 +296,9 @@ body{
  
 .deck-form[hidden],
 .card-form[hidden],
-.empty-state[hidden]{display:none !important}
+.empty-state[hidden],
+.flashcard[hidden],
+.card-controls[hidden]{display:none !important}
  
 /* Footer */
 .app-footer{

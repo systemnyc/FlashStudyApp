@@ -2,12 +2,13 @@ import { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
-import { cards } from "../data/cards";
+import { useCards } from "../context/CardsContext";
 import { theme } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Categories">;
 
 export default function CategoriesScreen({ navigation }: Props) {
+  const { cards } = useCards();
   const categories = [...new Set(cards.map((c) => c.category))];
 
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});

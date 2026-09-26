@@ -2,49 +2,56 @@ import { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
-import { cards } from "../data/cards";
+import { useCards } from "../context/CardsContext";
 import FlipCard from "../components/FlipCard";
 import { theme } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CategoryDetail">;
 
 export default function CategoryDetailScreen({ route }: Props) {
-
-  // ⭐ 1. Pull BOTH params from navigation
-  // category = which category we are viewing
-  // startIndex = which card to start on (optional)
   const { category, startIndex } = route.params;
+  const { cards } = useCards();
 
-  // Filter cards for this category
   const filtered = cards.filter((c) => c.category === category);
 
-  // ⭐ 2. State initialization
-  // If startIndex exists, use it. Otherwise default to 0.
-  const [index, setIndex] = useState(startIndex ?? 0);
+  const initialIndex = filtered.length === 0 ? 0 : Math.min(startIndex ?? 0, filtered.length - 1);
+  const [index, setIndex] = useState(initialIndex);
 
-  // Next card in order
-  const next = () => setIndex((index + 1) % filtered.length);
+  const next = () => {
+    if (filtered.length === 0) return;
+    setIndex((prevIndex) => (prevIndex + 1) % filtered.length);
+  };
 
-  // ⭐ Random card from same category
   const randomFromCategory = () => {
+    if (filtered.length === 0) return;
     const randomIndex = Math.floor(Math.random() * filtered.length);
     setIndex(randomIndex);
   };
+
+  if (filtered.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>{category}</Text>
+        <Text style={styles.emptyText}>No cards available for this category.</Text>
+      </View>
+    );
+  }
+
+  const currentCard = filtered[index];
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{category}</Text>
 
       <FlipCard
-        front={filtered[index].term}
-        back={filtered[index].answer}
+        front={currentCard.term}
+        back={currentCard.answer}
       />
 
       <TouchableOpacity style={styles.button} onPress={next}>
         <Text style={styles.buttonText}>Next Card</Text>
       </TouchableOpacity>
 
-      {/* ⭐ New button */}
       <TouchableOpacity
         style={[styles.button, styles.secondaryButton]}
         onPress={randomFromCategory}
@@ -87,5 +94,11 @@ const styles = StyleSheet.create({
     color: theme.colors.accent,
     fontSize: 18,
     fontWeight: "600",
+  },
+  emptyText: {
+    color: theme.colors.textSecondary,
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: theme.spacing.m,
   },
 });

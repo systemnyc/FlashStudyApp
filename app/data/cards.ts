@@ -5,7 +5,7 @@ export type Card = {
   category: string;
 };
 
-export const cards: Card[] = [
+export const initialCards: Card[] = [
   {
     id: 1,
     term: "Pythagorean Theorem",

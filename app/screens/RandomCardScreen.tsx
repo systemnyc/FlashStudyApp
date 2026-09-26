@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import FlipCard from "../components/FlipCard";
-import { cards } from "../data/cards"; // temporary until SQLite engine is added
+import { useCards } from "../context/CardsContext";
+import { Card } from "../data/cards";
 import { theme } from "../theme";
 
 export default function RandomCardScreen() {
-  const [currentCard, setCurrentCard] = useState(null);
+  const { cards } = useCards();
+  const [currentCard, setCurrentCard] = useState<Card | null>(null);
 
   const getRandomCard = () => {
     const randomIndex = Math.floor(Math.random() * cards.length);
@@ -14,7 +16,7 @@ export default function RandomCardScreen() {
 
   useEffect(() => {
     getRandomCard();
-  }, []);
+  }, [cards]);
 
   if (!currentCard) return null;
 

@@ -21,14 +21,15 @@
         <ul class="deck-list"></ul>
       </nav>
 
-      <div id="deck-form" class="deck-form" hidden>
+      <dialog id="deck-form" class="deck-form" aria-labelledby="deck-form-title">
+        <h2 id="deck-form-title" class="card-form-title">New Deck</h2>
         <label for="deck-name-input" class="deck-form-label">Deck name</label>
         <input id="deck-name-input" type="text" class="search-input deck-name-input" placeholder="e.g. History 101" maxlength="60" />
         <div class="deck-form-actions">
           <button id="deck-form-save" type="button" class="btn btn-primary">Save</button>
           <button id="deck-form-cancel" type="button" class="btn">Cancel</button>
         </div>
-      </div>
+      </dialog>
     </aside>
 
     <main id="main" class="main-content" role="main">
@@ -72,12 +73,14 @@
           </div>
         </div>
 
-        <div id="empty-state" class="empty-state" hidden>
-          <p>This deck has no cards yet.</p>
+        <div id="empty-state" class="empty-state" role="status" hidden>
+          <p id="empty-state-message">This deck has no cards yet.</p>
           <button id="empty-add-card-btn" type="button" class="btn btn-primary">+ Add First Card</button>
+          <button id="clear-search-btn" type="button" class="btn" hidden>Clear search</button>
+          <button id="empty-create-deck-btn" type="button" class="btn btn-primary" hidden>Create First Deck</button>
         </div>
 
-        <div id="card-form" class="card-form" hidden>
+        <dialog id="card-form" class="card-form" aria-labelledby="card-form-title">
           <h3 id="card-form-title" class="card-form-title">New Card</h3>
           <div class="card-form-fields">
             <div class="form-group">
@@ -93,7 +96,7 @@
             <button id="card-form-save" type="button" class="btn btn-primary">Save Card</button>
             <button id="card-form-cancel" type="button" class="btn">Cancel</button>
           </div>
-        </div>
+        </dialog>
       </section>
     </main>
   </div>

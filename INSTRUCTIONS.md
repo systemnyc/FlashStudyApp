@@ -14,7 +14,7 @@ FlashStudyApp is intended to help learners manage and review study material quic
 
 ## App Requirements
 
-- **App supports**: App supports multiple decks. 
+- **App supports**: App supports multiple decks.
 - **Card Features**: Each deck has cards with front/back text.
 - **Card CRUD**: Create, edit, delete decks and cards.
 - **Study mode**: flip cards, next/previous, shuffle.
@@ -29,7 +29,6 @@ Clean, readable UI.
 - **Cards**: Individual question-answer pairs.
 - **Review Sessions**: Interactive review flow for studying cards.
 - **Progress Tracking**: Track performance and review history.
-
 
 ### Create a New Deck
 
