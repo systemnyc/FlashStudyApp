@@ -27,14 +27,12 @@ This repository also contains a separate Expo prototype. The `npm run web` scrip
 
 ## Manual QA
 
-Check deck and card CRUD, search and clearing search, card navigation and flip reset, persistence after reload, empty states, dialog keyboard focus, and layout at mobile and desktop sizes. The project does not currently define an automated test script.
+Browser checks covered deck and card create/edit/delete, search and clearing search, Enter in search, navigation and flip reset, reload persistence, empty-deck recovery, dialog focus cycling and Escape handling, and the storage-failure message. Responsive layout was checked at mobile and desktop widths; dark mode worked, and no browser console errors were observed. JavaScript syntax, TypeScript, editor diagnostics, and diff whitespace checks passed. No automated test script is configured.
 
 ## AI Development Reflection
 
-Draft based on the implementation and review work; personalize these bullets to match your own experience before submitting.
-
-- AI saved time by scaffolding the initial semantic HTML structure and responsive CSS layout.
-- During review, I found that Space on a focused deck row also flipped the card because the event bubbled to the global keyboard handler. I stopped the event from propagating and verified deck selection in the browser.
-- I refactored LocalStorage persistence to return a success result so the UI can distinguish saved changes from changes that may be lost on reload.
-- I improved keyboard accessibility by using native buttons for deck selection and native modal dialogs that contain focus and restore it when closed.
-- Prompts with one specific behavior and a verification condition were more useful than broad requests. For example: "Pressing Space on a focused deck selector must switch decks without flipping the card; verify this in the browser."
+- AI saved time by scaffolding the semantic HTML and responsive CSS, then helping implement the browser app's study and CRUD interactions.
+- Browser review exposed a keyboard bug: Space on a focused deck row selected it and also flipped the card because the event bubbled to the global handler. I stopped propagation and verified the behavior in the browser.
+- I refactored LocalStorage persistence to return a success result, so the app can distinguish saved changes from changes that may be lost on reload.
+- I improved accessibility with semantic deck-selection buttons, native modal dialogs, focus containment, Escape handling, and focus restoration.
+- I got more reliable AI output by asking for one specific behavior and its verification condition, then testing before moving to the next change.
